@@ -17,7 +17,7 @@ export const initialStateConfig = {
   loading: <PageLoading />,
 };
 export const request: RequestConfig = {
-  timeout:10000,
+  timeout: 10000,
 };
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
@@ -33,7 +33,7 @@ export async function getInitialState(): Promise<{
       const msg = await queryCurrentUser();
       return msg.data;
     } catch (error) {
-      history.push(loginPath);
+      // history.push(loginPath);
     }
     return undefined;
   };
@@ -63,8 +63,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;
+      const whiteList = ['/user/register', loginPath];
+      if (whiteList.includes(location.pathname)) {
+        return;
+      }
       // 如果没有登录，重定向到 login
-      if (!initialState?.currentUser && location.pathname !== loginPath) {
+      if (!initialState?.currentUser) {
         history.push(loginPath);
       }
     },
@@ -84,7 +88,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态
-    childrenRender: (children: any, props: { location: { pathname: string | string[]; }; }) => {
+    childrenRender: (children: any, props: { location: { pathname: string | string[] } }) => {
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
