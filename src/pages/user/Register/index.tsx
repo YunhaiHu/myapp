@@ -6,6 +6,7 @@ import { SYSTEM_LOGO } from '@/constants';
 import Footer from '@/components/Footer';
 import { register } from '@/services/ant-design-pro/api';
 import styles from './index.less';
+// @ts-ignore
 import { LoginForm, ProFormText } from '@ant-design/pro-form';
 
 const Register: React.FC = () => {
@@ -61,7 +62,7 @@ const Register: React.FC = () => {
           initialValues={{
             autoLogin: true,
           }}
-          onFinish={async (values) => {
+          onFinish={async (values: API.RegisterParams) => {
             await handleSubmit(values as API.RegisterParams);
           }}
         >
