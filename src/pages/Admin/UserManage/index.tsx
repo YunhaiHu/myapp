@@ -1,15 +1,14 @@
-import type { ProColumns } from '@ant-design/pro-components';
-import { ProCard, ProTable } from '@ant-design/pro-components';
-import { Tabs } from 'antd';
-import { useState } from 'react';
+import { useRef } from 'react';
+import type { ProColumns, ActionType } from '@ant-design/pro-table';
+import ProTable, { TableDropdown } from '@ant-design/pro-table';
 import { searchUsers } from '@/services/ant-design-pro/api';
+import { Image } from 'antd';
 
 const columns: ProColumns<API.CurrentUser>[] = [
   {
-    title: 'id',
     dataIndex: 'id',
-    width: 64,
     valueType: 'indexBorder',
+    width: 48,
   },
   {
     title: '用户名',
@@ -24,7 +23,11 @@ const columns: ProColumns<API.CurrentUser>[] = [
   {
     title: '头像',
     dataIndex: 'avatarUrl',
-    copyable: true,
+    render: (_, record) => (
+      <div>
+        <Image src={record.avatarUrl} width={100} />
+      </div>
+    ),
   },
   {
     title: '性别',
@@ -41,107 +44,95 @@ const columns: ProColumns<API.CurrentUser>[] = [
     copyable: true,
   },
   {
-    title: '用户状态',
+    title: '状态',
     dataIndex: 'userStatus',
   },
   {
-    title: '用户角色',
+    title: '角色',
     dataIndex: 'userRole',
-  },
-  {
-    title: '创建时间',
-    dataIndex: 'updateTime',
-    valueType: 'dateTime',
-  },
-  {
-    title: (_, type) => (type === 'table' ? '状态' : '列表状态'),
-    dataIndex: 'state',
-    initialValue: 'all',
-    filters: true,
-    onFilter: true,
     valueType: 'select',
     valueEnum: {
-      all: { text: '全部', status: 'Default' },
-      open: {
-        text: '未解决',
-        status: 'Error',
-      },
-      closed: {
-        text: '已解决',
+      0: { text: '普通用户', status: 'Default' },
+      1: {
+        text: '管理员',
         status: 'Success',
       },
     },
   },
   {
-    title: '排序方式',
-    key: 'direction',
-    hideInTable: true,
-    hideInDescriptions: true,
-    dataIndex: 'direction',
-    filters: true,
-    onFilter: true,
-    valueType: 'select',
-    valueEnum: {
-      asc: '正序',
-      desc: '倒序',
-    },
+    title: '创建时间',
+    dataIndex: 'createTime',
+    valueType: 'dateTime',
+  },
+  {
+    title: '操作',
+    valueType: 'option',
+    render: (text, record, _, action) => [
+      <a
+        key="editable"
+        onClick={() => {
+          action?.startEditable?.(record.id);
+        }}
+      >
+        编辑
+      </a>,
+      <a href={record.avatarUrl} target="_blank" rel="noopener noreferrer" key="view">
+        查看
+      </a>,
+      <TableDropdown
+        key="actionGroup"
+        onSelect={() => action?.reload()}
+        menus={[
+          { key: 'copy', name: '复制' },
+          { key: 'delete', name: '删除' },
+        ]}
+      />,
+    ],
   },
 ];
-// {
-//   title: '标签',
-//   dataIndex: 'labels',
-//   width: 120,
-//   render: (_, row) => (
-//     <Space>
-//       {row.labels.map(({ name, color }) => (
-//         <Tag color={color} key={name}>
-//           {name}
-//         </Tag>
-//       ))}
-//     </Space>
-//   ),
-// },
-//   {
-//     title: 'option',
-//     valueType: 'option',
-//     dataIndex: 'id',
-//     render: (text, row) => [
-//       <a href={row.url} key="show" target="_blank" rel="noopener noreferrer">
-//         查看
-//       </a>,
-//       <TableDropdown
-//         key="more"
-//         onSelect={(key) => message.info(key)}
-//         menus={[
-//           { key: 'copy', name: '复制' },
-//           { key: 'delete', name: '删除' },
-//         ]}
-//       />,
-//     ],
-//   },
-// ];
 
 export default () => {
-  const [type, setType] = useState('table');
+  const actionRef = useRef<ActionType>();
   return (
-    <ProCard>
-      <Tabs activeKey={type} onChange={(e) => setType(e)}>
-        <Tabs.TabPane tab="table" key="table" />
-        <Tabs.TabPane tab="form" key="form" />
-        <Tabs.TabPane tab="descriptions" key="descriptions" />
-      </Tabs>
-      {['table', 'form'].includes(type) && (
-        <ProTable<API.CurrentUser>
-          columns={columns}
-          type={type as 'table'}
-          request={async (params = {}) => {
-            const userList = await searchUsers();
+    <ProTable<API.CurrentUser>
+      columns={columns}
+      actionRef={actionRef}
+      cardBordered
+      request={async (params = {}, sort, filter) => {
+        console.log(sort, filter);
+        const userList = await searchUsers();
+        return {
+          data: userList,
+        };
+      }}
+      editable={{
+        type: 'multiple',
+      }}
+      columnsState={{
+        persistenceKey: 'pro-table-singe-demos',
+        persistenceType: 'localStorage',
+      }}
+      rowKey="id"
+      search={{
+        labelWidth: 'auto',
+      }}
+      form={{
+        // 由于配置了 transform，提交的参与与定义的不同这里需要转化一下
+        syncToUrl: (values, type) => {
+          if (type === 'get') {
             return {
-              date: userList,
+              ...values,
+              created_at: [values.startTime, values.endTime],
             };
-          }}
-        />
-      )}
-    </ProCard>
+          }
+          return values;
+        },
+      }}
+      pagination={{
+        pageSize: 5,
+      }}
+      dateFormatter="string"
+      headerTitle="高级表格"
+    />
   );
 };
