@@ -18,7 +18,7 @@ export const initialStateConfig = {
   loading: <PageLoading />,
 };
 export const request: RequestConfig = {
-  timeout: 10000,
+  timeout: 100000,
 };
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
