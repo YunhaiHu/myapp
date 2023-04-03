@@ -14,8 +14,13 @@ const Register: React.FC = () => {
 
   // 表单提交
   const handleSubmit = async (values: API.RegisterParams) => {
-    const { userPassword, checkPassword } = values;
+    const { userPassword, checkPassword, userAccount } = values;
     // 校验
+    // @ts-ignore
+    if (userAccount?.length < 4) {
+      message.error('注册账号过短');
+      return;
+    }
     if (userPassword !== checkPassword) {
       message.error('两次输入的密码不一致');
       return;
