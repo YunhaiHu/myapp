@@ -10,9 +10,9 @@ export async function currentUser(options?: { [key: string]: any }) {
   });
 }
 
-/** 退出登录接口 POST /api/usr/logout */
+/** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/user/logout', {
+  return request<Record<string, any>>('/api/login/outLogin', {
     method: 'POST',
     ...(options || {}),
   });
